@@ -56,7 +56,14 @@ const printGithubUserProfile = (username) => {
 
 const getAndPrintGitHubUserProfile = (username) => {
     return fetch(`https://api.github.com/users/${username}`)
-        .then((res) => res.json())
+        .then((res) => {
+            if (res.ok)
+                return res.json()
+            else {
+                throw "No user found"
+            }
+        }
+        )
         .then((json) => {
             const returnValue = `<section>
                                     <img src="${json.avatar_url}" alt="${json.name}">
@@ -65,21 +72,43 @@ const getAndPrintGitHubUserProfile = (username) => {
                                 </section>`
             return returnValue;
         })
+        .catch(error => {
+            return error;
+        });
 }
 
-const fetchGithubUsers = (userNames) => {
-    const allPromises = []
-    userNames.forEach(element => {
-        const newPromise = fetch(`https://api.github.com/users/${element}`)
-        allPromises.push(newPromise)
-    });
-    Promise.all(allPromises)
-        .then((values) => {
-            return Promise.all(values)
-                .then(valuesJson => {
-                    console.log(valuesJson)
-                })
 
-        })
-    // .then((json) => console.log(json))
+const searchButton = document.querySelector("#searchButton");
+const usernameInput = document.querySelector("#usernameInput")
+const SearchResult = document.querySelector("#SearchResult")
+
+const drawSearch = async () => {
+    const username = usernameInput.value;
+    const text = await getAndPrintGitHubUserProfile(username);
+    SearchResult.innerHTML = text;
+}
+
+searchButton.addEventListener("click", event => {
+    drawSearch();
+})
+
+
+
+const fetchGithubUsers = (userNames) => {
+    const allPromises = [];
+    userNames.forEach(element => {
+        const newPromise = fetch(`https://api.github.com/users/${element}`).then(res => res.json());
+        allPromises.push(newPromise);
+    });
+    const returnValue = [];
+    return Promise.all(allPromises);
+    // .then(json => {
+    //     return json.map(element => {
+    //         return {
+    //             "url": element.url,
+    //             name: element.name
+    //         }
+
+    //     })
+    // })
 }
